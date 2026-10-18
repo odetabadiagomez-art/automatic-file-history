@@ -1,0 +1,471 @@
+{
+  "name": "automatic-file-history",
+  "displayName": "Automatic File History",
+  "version": "0.1.0",
+  "publisher": "odetabadiagomez-art",
+  "description": "Automatic local snapshots of text files changed by editors, agents, CLI tools, or any external process. No Git, no account, no cloud.",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "categories": [
+    "Other",
+    "SCM Providers"
+  ],
+  "keywords": [
+    "history",
+    "local history",
+    "snapshot",
+    "backup",
+    "recovery",
+    "undo",
+    "timeline",
+    "version"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odetabadiagomez-art/automatic-file-history.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Automatic File History versions files on the local disk, which virtual and remote workspaces do not provide."
+    },
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Monitoring reads and copies workspace file contents into local history, so it only runs in trusted workspaces."
+    }
+  },
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "automaticFileHistory.revisions",
+          "name": "Automatic File History",
+          "icon": "media/history.svg",
+          "contextualTitle": "Automatic File History",
+          "visibility": "visible"
+        },
+        {
+          "id": "automaticFileHistory.files",
+          "name": "Recently Changed Files",
+          "icon": "media/files.svg",
+          "contextualTitle": "Automatic File History",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "automaticFileHistory.refresh",
+        "title": "Refresh",
+        "category": "Automatic File History",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "automaticFileHistory.openRevision",
+        "title": "Open Snapshot (Read-only)",
+        "category": "Automatic File History",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "automaticFileHistory.compareWithCurrent",
+        "title": "Compare with Current File",
+        "category": "Automatic File History",
+        "icon": "$(compare-changes)"
+      },
+      {
+        "command": "automaticFileHistory.compareWithPrevious",
+        "title": "Compare with Previous Snapshot",
+        "category": "Automatic File History",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "automaticFileHistory.restore",
+        "title": "Restore This Snapshot…",
+        "category": "Automatic File History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "automaticFileHistory.exportRevision",
+        "title": "Export Snapshot…",
+        "category": "Automatic File History",
+        "icon": "$(save-as)"
+      },
+      {
+        "command": "automaticFileHistory.captureNow",
+        "title": "Capture Checkpoint Now",
+        "category": "Automatic File History",
+        "icon": "$(bookmark)"
+      },
+      {
+        "command": "automaticFileHistory.deleteFileHistory",
+        "title": "Delete History for This File…",
+        "category": "Automatic File History",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "automaticFileHistory.clearWorkspaceHistory",
+        "title": "Delete All Workspace History…",
+        "category": "Automatic File History",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "automaticFileHistory.showStorageUsage",
+        "title": "Show Storage and Monitoring Status",
+        "category": "Automatic File History",
+        "icon": "$(database)"
+      },
+      {
+        "command": "automaticFileHistory.pauseMonitoring",
+        "title": "Pause Monitoring",
+        "category": "Automatic File History",
+        "icon": "$(debug-pause)"
+      },
+      {
+        "command": "automaticFileHistory.resumeMonitoring",
+        "title": "Resume Monitoring",
+        "category": "Automatic File History",
+        "icon": "$(debug-continue)"
+      },
+      {
+        "command": "automaticFileHistory.pinFile",
+        "title": "Choose File to Follow…",
+        "category": "Automatic File History",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "automaticFileHistory.unpinFile",
+        "title": "Follow Active Editor Again",
+        "category": "Automatic File History",
+        "icon": "$(pinned)"
+      },
+      {
+        "command": "automaticFileHistory.showFileHistory",
+        "title": "Show Automatic File History",
+        "category": "Automatic File History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "automaticFileHistory.showRecentlyChanged",
+        "title": "Show Recently Changed and Deleted Files",
+        "category": "Automatic File History",
+        "icon": "$(files)"
+      },
+      {
+        "command": "automaticFileHistory.restoreDeletedFile",
+        "title": "Restore Deleted File…",
+        "category": "Automatic File History",
+        "icon": "$(new-file)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "automaticFileHistory.refresh",
+          "when": "view == automaticFileHistory.revisions",
+          "group": "navigation@1"
+        },
+        {
+          "command": "automaticFileHistory.captureNow",
+          "when": "view == automaticFileHistory.revisions",
+          "group": "navigation@2"
+        },
+        {
+          "command": "automaticFileHistory.pinFile",
+          "when": "view == automaticFileHistory.revisions",
+          "group": "navigation@3"
+        },
+        {
+          "command": "automaticFileHistory.pauseMonitoring",
+          "when": "view == automaticFileHistory.revisions && automaticFileHistory.monitoring",
+          "group": "1_monitoring@1"
+        },
+        {
+          "command": "automaticFileHistory.resumeMonitoring",
+          "when": "view == automaticFileHistory.revisions && !automaticFileHistory.monitoring",
+          "group": "1_monitoring@1"
+        },
+        {
+          "command": "automaticFileHistory.showStorageUsage",
+          "when": "view == automaticFileHistory.revisions",
+          "group": "2_storage@1"
+        },
+        {
+          "command": "automaticFileHistory.clearWorkspaceHistory",
+          "when": "view == automaticFileHistory.revisions",
+          "group": "3_destructive@1"
+        },
+        {
+          "command": "automaticFileHistory.refresh",
+          "when": "view == automaticFileHistory.files",
+          "group": "navigation@1"
+        },
+        {
+          "command": "automaticFileHistory.showRecentlyChanged",
+          "when": "view == automaticFileHistory.files",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "automaticFileHistory.compareWithCurrent",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision(\\.latest)?$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "automaticFileHistory.restore",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "inline@2"
+        },
+        {
+          "command": "automaticFileHistory.openRevision",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "1_open@1"
+        },
+        {
+          "command": "automaticFileHistory.compareWithCurrent",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "2_compare@1"
+        },
+        {
+          "command": "automaticFileHistory.compareWithPrevious",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "2_compare@2"
+        },
+        {
+          "command": "automaticFileHistory.exportRevision",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "3_export@1"
+        },
+        {
+          "command": "automaticFileHistory.restore",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "4_restore@1"
+        },
+        {
+          "command": "automaticFileHistory.deleteFileHistory",
+          "when": "view == automaticFileHistory.revisions && viewItem =~ /^afh\\.revision/",
+          "group": "5_destructive@1"
+        },
+        {
+          "command": "automaticFileHistory.unpinFile",
+          "when": "view == automaticFileHistory.revisions && viewItem == afh.pinnedHeader",
+          "group": "inline@1"
+        },
+        {
+          "command": "automaticFileHistory.unpinFile",
+          "when": "view == automaticFileHistory.revisions && viewItem == afh.pinnedHeader",
+          "group": "1_pin@1"
+        },
+        {
+          "command": "automaticFileHistory.showFileHistory",
+          "when": "view == automaticFileHistory.files && viewItem =~ /^afh\\.file/",
+          "group": "inline@1"
+        },
+        {
+          "command": "automaticFileHistory.showFileHistory",
+          "when": "view == automaticFileHistory.files && viewItem =~ /^afh\\.file/",
+          "group": "1_open@1"
+        },
+        {
+          "command": "automaticFileHistory.restoreDeletedFile",
+          "when": "view == automaticFileHistory.files && viewItem == afh.file.deleted",
+          "group": "2_restore@1"
+        },
+        {
+          "command": "automaticFileHistory.deleteFileHistory",
+          "when": "view == automaticFileHistory.files && viewItem =~ /^afh\\.file/",
+          "group": "5_destructive@1"
+        },
+        {
+          "command": "automaticFileHistory.showFileHistory",
+          "when": "explorerResourceIsFolder == false && automaticFileHistory.enabledContext",
+          "group": "4_automatic-file-history@1"
+        },
+        {
+          "command": "automaticFileHistory.captureNow",
+          "when": "explorerResourceIsFolder == false && automaticFileHistory.enabledContext",
+          "group": "4_automatic-file-history@2"
+        },
+        {
+          "command": "automaticFileHistory.deleteFileHistory",
+          "when": "explorerResourceIsFolder == false && automaticFileHistory.enabledContext",
+          "group": "4_automatic-file-history@3"
+        },
+        {
+          "command": "automaticFileHistory.showFileHistory",
+          "when": "editorIsOpen && automaticFileHistory.enabledContext",
+          "group": "4_automatic-file-history@1"
+        },
+        {
+          "command": "automaticFileHistory.captureNow",
+          "when": "editorIsOpen && automaticFileHistory.enabledContext",
+          "group": "4_automatic-file-history@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "automaticFileHistory.openRevision",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.compareWithCurrent",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.compareWithPrevious",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.restore",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.exportRevision",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.unpinFile",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.restoreDeletedFile",
+          "when": "false"
+        },
+        {
+          "command": "automaticFileHistory.pauseMonitoring",
+          "when": "automaticFileHistory.monitoring"
+        },
+        {
+          "command": "automaticFileHistory.resumeMonitoring",
+          "when": "!automaticFileHistory.monitoring"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Automatic File History",
+      "properties": {
+        "automaticFileHistory.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Capture local snapshots of eligible text files in trusted workspaces."
+        },
+        "automaticFileHistory.followActiveEditor": {
+          "type": "boolean",
+          "default": true,
+          "description": "The history view follows the active editor. Turn this off to keep showing the last pinned file."
+        },
+        "automaticFileHistory.maxFileSizeMB": {
+          "type": "number",
+          "default": 2,
+          "minimum": 0.1,
+          "maximum": 64,
+          "description": "Files larger than this are not tracked."
+        },
+        "automaticFileHistory.maxRevisionsPerFile": {
+          "type": "number",
+          "default": 500,
+          "minimum": 2,
+          "maximum": 100000,
+          "description": "Snapshots kept per file. The first captured state and the latest state are always kept."
+        },
+        "automaticFileHistory.workspaceBudgetMB": {
+          "type": "number",
+          "default": 1024,
+          "minimum": 16,
+          "maximum": 102400,
+          "description": "Soft storage budget for this workspace. When exceeded, the oldest snapshots are pruned."
+        },
+        "automaticFileHistory.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional glob patterns to exclude, matched against the workspace-relative path.",
+          "examples": [
+            "**/generated/**",
+            "**/*.snap"
+          ]
+        },
+        "automaticFileHistory.include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Glob patterns that override the built-in exclusions. Use with care: excluding secrets by default is deliberate.",
+          "examples": [
+            "**/.env.example"
+          ]
+        },
+        "automaticFileHistory.captureOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Capture a snapshot when a document is saved in this window, in addition to disk watching."
+        },
+        "automaticFileHistory.stabilizationDelayMs": {
+          "type": "number",
+          "default": 120,
+          "minimum": 0,
+          "maximum": 5000,
+          "description": "Quiet period required before a file is read. Reduces partial reads; it cannot prove a writer has finished."
+        },
+        "automaticFileHistory.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the monitoring status in the status bar."
+        },
+        "automaticFileHistory.recentFilesLimit": {
+          "type": "number",
+          "default": 50,
+          "minimum": 5,
+          "maximum": 500,
+          "description": "How many files the Recently Changed Files view lists."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run bundle:production",
+    "compile": "tsc -p ./",
+    "check-types": "tsc --noEmit -p ./",
+    "bundle": "node esbuild.mjs",
+    "bundle:production": "node esbuild.mjs --production",
+    "build": "npm run check-types && npm run bundle",
+    "watch": "node esbuild.mjs --watch",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "pretest": "npm run compile",
+    "test": "npm run test:unit",
+    "test:unit": "mocha \"out/test/unit/**/*.test.js\"",
+    "test:integration": "npm run compile && node ./out/test/integration/run.js",
+    "package": "vsce package --no-dependencies",
+    "verify": "npm run check-types && npm run lint && npm run test:unit"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.5"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^2.31.0",
+    "esbuild": "^0.23.1",
+    "eslint": "^9.9.0",
+    "mocha": "^10.7.3",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.2.0"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "spec": "out/test/unit/**/*.test.js",
+  "timeout": 30000,
+  "recursive": false,
+  "checkLeaks": false
+}
