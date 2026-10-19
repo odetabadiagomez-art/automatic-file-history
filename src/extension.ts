@@ -597,6 +597,14 @@ async function showStorageUsage(output: vscode.OutputChannel): Promise<void> {
 	interface UsageItem extends vscode.QuickPickItem {
 		action?: 'reveal' | 'gc' | 'budget' | 'output' | 'pause';
 	}
+	const unlimitedBudget = !(settings.policy.workspaceBudgetBytes > 0);
+	const unlimitedRevisions = !(settings.policy.maxRevisionsPerFile > 0);
+	const budgetLine = unlimitedBudget
+		? `Snapshot storage: ${formatSize(usage.blobBytes)} · no budget, every snapshot is kept`
+		: `Snapshot storage: ${formatSize(usage.blobBytes)} of ${formatSize(settings.policy.workspaceBudgetBytes)} budget`;
+	const limitLine = unlimitedRevisions
+		? `Per-file limit: keep every snapshot · max tracked size ${formatSize(settings.policy.maxFileBytes)}`
+		: `Per-file limit: ${settings.policy.maxRevisionsPerFile} snapshots · max tracked size ${formatSize(settings.policy.maxFileBytes)}`;
 	const items: UsageItem[] = [
 		{
 			label: `$(pulse) Status: ${status.phase}`,
@@ -604,10 +612,10 @@ async function showStorageUsage(output: vscode.OutputChannel): Promise<void> {
 			detail: [
 				status.message,
 				`Scanned ${usage.fileCount} tracked file(s) · ${usage.revisionCount} snapshot(s) stored`,
-				`Snapshot storage: ${formatSize(usage.blobBytes)} of ${formatSize(settings.policy.workspaceBudgetBytes)} budget`,
+				budgetLine,
 				usage.overBudgetBytes > 0 ? `Over budget by ${formatSize(usage.overBudgetBytes)}` : undefined,
-				`Metadata: ${formatSize(usage.manifestBytes)} · pruned ${usage.prunedRevisions} snapshot(s)`,
-				`Per-file limit: ${settings.policy.maxRevisionsPerFile} snapshots · max tracked size ${formatSize(settings.policy.maxFileBytes)}`,
+				`Metadata: ${formatSize(usage.manifestBytes)} · ${usage.prunedRevisions > 0 ? `pruned ${usage.prunedRevisions} snapshot(s)` : 'nothing auto-pruned'}`,
+				limitLine,
 				`Storage folder: ${usage.rootDir}`
 			]
 				.filter(Boolean)
@@ -615,7 +623,11 @@ async function showStorageUsage(output: vscode.OutputChannel): Promise<void> {
 		},
 		{ label: '$(folder-opened) Open Storage Folder', action: 'reveal' },
 		{ label: '$(trash) Remove Orphaned Snapshots Now', description: 'garbage collection', action: 'gc' },
-		{ label: '$(gear) Apply Retention Budget Now', description: 'prune oldest snapshots', action: 'budget' },
+		{
+			label: '$(gear) Apply Retention Budget Now',
+			description: unlimitedBudget ? 'no budget set — nothing to prune' : 'prune oldest snapshots',
+			action: 'budget'
+		},
 		{
 			label: active.monitor.currentPhase === 'paused' ? '$(debug-continue) Resume Monitoring' : '$(debug-pause) Pause Monitoring',
 			action: 'pause'
@@ -644,6 +656,12 @@ async function showStorageUsage(output: vscode.OutputChannel): Promise<void> {
 			break;
 		}
 		case 'budget': {
+			if (!(settings.policy.workspaceBudgetBytes > 0)) {
+				void vscode.window.showInformationMessage(
+					'No workspace budget is set, so every snapshot is kept and nothing was pruned. Set automaticFileHistory.workspaceBudgetMB to enable size-based pruning.'
+				);
+				break;
+			}
 			const result = await active.store.enforceBudget();
 			await active.store.gc({ graceMs: 0 });
 			void vscode.window.showInformationMessage(

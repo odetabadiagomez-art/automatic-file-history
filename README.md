@@ -33,7 +33,9 @@ on the same footing as a save.
 
 **It preserves the initial baseline and every distinct file state successfully observed while
 monitoring is active.** Snapshots persist across restarts and are inspectable, comparable,
-exportable, and restorable.
+exportable, and restorable. **Nothing is ever deleted automatically** — by default every
+snapshot is kept forever, so the full history of each file survives no matter how much the
+storage folder grows.
 
 It does **not** promise every intermediate write by every tool, and no filesystem watcher can:
 
@@ -42,7 +44,7 @@ It does **not** promise every intermediate write by every tool, and no filesyste
 | A watcher sees changes *after* they land | If a tool writes five times before an observation completes, intermediate states may be merged. The final state is always captured. |
 | The extension only runs while VS Code runs | Changes made while VS Code is closed are never observed. On startup the first differing state is labelled **Observed on startup**. |
 | The writing process is not identified | Entries say **Disk change**. Only saves from an editor in this window are labelled **Editor save**. Nothing is ever attributed to a specific agent or tool. |
-| Retention limits apply | Past a per-file or workspace budget, the oldest snapshots are pruned. The first captured state and the latest state are always kept. |
+| History grows without bound | Every distinct state is kept forever and nothing is pruned automatically, so the `.file-history` folder grows with your edits. This is deliberate: no version is ever silently lost. If you want a cap, `automaticFileHistory.maxRevisionsPerFile` and `automaticFileHistory.workspaceBudgetMB` are opt-in, and even then the first captured state and the latest state are always kept. |
 
 Every one of these is surfaced in the UI rather than hidden: the status bar item, the status
 quick pick, and the per-file empty states all say what is and is not covered.
@@ -104,9 +106,10 @@ than claiming to eliminate it, and the extension says so instead of over-promisi
 ### Status and maintenance
 
 Click the status bar item (or run **Automatic File History: Show Storage and Monitoring Status**)
-for the monitoring phase, tracked-file and snapshot counts, storage used against the budget,
-pruned counts, the effective limits, and the storage folder. The same quick pick offers
-**Remove Orphaned Snapshots Now** and **Apply Retention Budget Now**.
+for the monitoring phase, tracked-file and snapshot counts, storage used, the effective limits
+(by default none — every snapshot is kept), pruned counts, and the storage folder. The same
+quick pick offers **Remove Orphaned Snapshots Now** and **Apply Retention Budget Now** (the
+latter does nothing unless you have set a workspace budget).
 
 Phases: `Initializing` (first snapshots still being built — not full protection yet),
 `Monitoring`, `Paused`, `Error` (with the failure count), `Off`, `Unavailable`.
@@ -172,8 +175,8 @@ elsewhere.
 | `automaticFileHistory.enabled` | `true` | Master switch. |
 | `automaticFileHistory.storageLocation` | `"workspace"` | `"workspace"` stores history in `.file-history` inside the project so it travels with the folder; `"extension"` keeps it in VS Code global storage on this machine. |
 | `automaticFileHistory.maxFileSizeMB` | `2` | Larger files are not tracked. |
-| `automaticFileHistory.maxRevisionsPerFile` | `500` | Oldest snapshots pruned past this; the first and latest are always kept. |
-| `automaticFileHistory.workspaceBudgetMB` | `1024` | Soft workspace budget; oldest snapshots pruned across files when exceeded. |
+| `automaticFileHistory.maxRevisionsPerFile` | `0` | Snapshots kept per file. `0` (default) keeps every snapshot forever; a positive value caps history, always keeping the first captured state and the latest state. |
+| `automaticFileHistory.workspaceBudgetMB` | `0` | Soft workspace budget in MB. `0` (default) means no budget, so nothing is pruned for size; a positive value prunes the oldest snapshots across files when exceeded. |
 | `automaticFileHistory.exclude` | `[]` | Extra globs, matched against the workspace-relative path. |
 | `automaticFileHistory.include` | `[]` | Globs that override the built-in exclusions. |
 | `automaticFileHistory.captureOnSave` | `true` | Capture on editor saves in addition to disk watching. |
@@ -312,14 +315,15 @@ VS Code 内置的 Local History 主要在编辑器保存时创建快照。如果
 ### 能保证什么，以及有哪些限制
 
 **扩展会保留初始基线，以及监控期间成功观察到的每一种不同文件状态。** 历史记录在重启后仍然
-存在，可以查看、对比、导出和恢复。但它不保证捕获每一次瞬间写入。
+存在，可以查看、对比、导出和恢复。**默认永不自动删除**：每一个快照都会被永久保留，无论存储
+文件夹增长到多大，每个文件的完整历史都不会丢失。但它不保证捕获每一次瞬间写入。
 
 | 限制 | 意味着什么 |
 | --- | --- |
 | 文件监视器在修改发生后才收到通知 | 如果工具在一次读取完成前连续写入多次，中间状态可能合并，不能保证每次写入都有独立快照。 |
 | 扩展只在 VS Code 运行时工作 | 关闭期间的中间变化不会被观察；再次启动时发现的不同状态标为 **Observed on startup**。 |
 | 无法识别外部写入进程 | 外部修改标为 **Disk change**；只有当前窗口的编辑器保存才标为 **Editor save**，不会猜测是哪个智能体或工具所为。 |
-| 历史记录受保留数量和容量限制 | 超过限制时会清理较旧快照，但保留首次捕获的状态和最新状态。 |
+| 历史记录默认无限增长 | 每个不同状态都会被永久保留，不会自动清理，因此 `.file-history` 文件夹会随编辑不断增大。这是有意为之，任何版本都不会被悄悄删除。如需设置上限，可显式配置 `automaticFileHistory.maxRevisionsPerFile` 或 `automaticFileHistory.workspaceBudgetMB`；即便如此，首次捕获的状态和最新状态仍会始终保留。 |
 
 状态栏、状态面板和文件历史的空状态说明会显示当前监控状态、限制及跳过原因。
 
@@ -377,9 +381,9 @@ VS Code 内置的 Local History 主要在编辑器保存时创建快照。如果
 #### 状态和维护
 
 点击状态栏，或运行 **Automatic File History: Show Storage and Monitoring Status**，可查看监控阶段、
-已跟踪文件数、快照数、容量使用情况、清理数量、当前限制和存储路径。
+已跟踪文件数、快照数、容量使用情况、当前限制（默认无限制，保留全部快照）、清理数量和存储路径。
 同一面板还提供 **Remove Orphaned Snapshots Now**（清理孤立快照）和
-**Apply Retention Budget Now**（立即按保留预算清理）。
+**Apply Retention Budget Now**（仅在设置了工作区预算时才会清理，否则不执行任何操作）。
 
 状态包括 `Initializing`（正在建立初始快照，尚未完成）、`Monitoring`（监控中）、
 `Paused`（暂停）、`Error`（错误及失败数量）、`Off`（关闭）和 `Unavailable`（不可用）。
@@ -439,8 +443,8 @@ macOS 上 `<globalStorage>` 通常为 `~/Library/Application Support/Code/User/g
 | `automaticFileHistory.enabled` | `true` | 是否启用捕获。 |
 | `automaticFileHistory.storageLocation` | `"workspace"` | 项目内存储；改为 `"extension"` 使用本机 VS Code 全局存储，切换后需重新加载。 |
 | `automaticFileHistory.maxFileSizeMB` | `2` | 超过该大小的文件不跟踪。 |
-| `automaticFileHistory.maxRevisionsPerFile` | `500` | 每个文件保留的快照数量上限；首次和最新状态保留。 |
-| `automaticFileHistory.workspaceBudgetMB` | `1024` | 工作区软容量预算，超限时清理较旧快照。 |
+| `automaticFileHistory.maxRevisionsPerFile` | `0` | 每个文件保留的快照数量。`0`（默认）表示永久保留全部；设为正数则限制数量，且始终保留首次捕获的状态和最新状态。 |
+| `automaticFileHistory.workspaceBudgetMB` | `0` | 工作区软容量预算（MB）。`0`（默认）表示不设预算、不因容量清理；设为正数则超限时清理最旧快照。 |
 | `automaticFileHistory.exclude` | `[]` | 额外排除规则，匹配工作区相对路径。 |
 | `automaticFileHistory.include` | `[]` | 可覆盖内置排除规则的包含规则，请谨慎使用。 |
 | `automaticFileHistory.captureOnSave` | `true` | 除磁盘监控外，也在编辑器保存时捕获。 |

@@ -21,18 +21,26 @@ function clamp(value: number, min: number, max: number, fallback: number): numbe
 	return Math.min(max, Math.max(min, value));
 }
 
+/**
+ * Read a limit where `0` means "unlimited" (keep everything). Any non-positive
+ * or non-finite value collapses to `0`; positive values are clamped into range.
+ */
+function clampLimit(value: number, max: number): number {
+	if (!Number.isFinite(value) || value <= 0) {
+		return 0;
+	}
+	return Math.min(max, Math.max(1, Math.floor(value)));
+}
+
 /** Read every setting into a plain object the core modules can consume. */
 export function readSettings(): ExtensionSettings {
 	const config = vscode.workspace.getConfiguration('automaticFileHistory');
 
 	const maxFileSizeMB = clamp(config.get<number>('maxFileSizeMB', 2), 0.1, 64, 2);
-	const maxRevisionsPerFile = clamp(
-		Math.floor(config.get<number>('maxRevisionsPerFile', 500)),
-		2,
-		100_000,
-		500
-	);
-	const workspaceBudgetMB = clamp(config.get<number>('workspaceBudgetMB', 1024), 16, 102_400, 1024);
+	// 0 = keep every snapshot (default). A positive value caps revisions per file.
+	const maxRevisionsPerFile = clampLimit(config.get<number>('maxRevisionsPerFile', 0), 100_000);
+	// 0 = no workspace budget (default). A positive value enables size-based pruning.
+	const workspaceBudgetMB = clampLimit(config.get<number>('workspaceBudgetMB', 0), 102_400);
 	const stabilizationDelayMs = clamp(
 		Math.floor(config.get<number>('stabilizationDelayMs', 120)),
 		0,

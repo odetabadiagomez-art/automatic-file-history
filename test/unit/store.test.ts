@@ -360,6 +360,42 @@ describe('HistoryStore', () => {
 		}
 	});
 
+	it('keeps every snapshot by default and never auto-prunes', async () => {
+		// The default policy is unlimited: maxRevisionsPerFile and workspaceBudgetBytes are 0.
+		assert.equal(workspace.policy.maxRevisionsPerFile, 0, 'default per-file limit must be unlimited');
+		assert.equal(workspace.policy.workspaceBudgetBytes, 0, 'default workspace budget must be unlimited');
+
+		const abs = await writeProjectFile(workspace.root, 'keep-all.txt', 'v0');
+		const total = 30;
+		for (let i = 0; i < total; i++) {
+			await workspace.store.appendContent({
+				absPath: abs,
+				relPath: 'keep-all.txt',
+				content: Buffer.from(`v${i}-${'y'.repeat(24)}`),
+				event: i === 0 ? 'baseline' : 'disk-change',
+				origin: 'unknown'
+			});
+		}
+
+		const history = await readHistory(workspace, 'keep-all.txt');
+		assert.ok(history);
+		assert.equal(history.revisions.length, total, 'every snapshot is kept');
+		assert.ok(!history.pruned, 'nothing is pruned by default');
+		assert.equal(history.revisions[0].hash, sha256Hex(`v0-${'y'.repeat(24)}`));
+		assert.equal(history.revisions[total - 1].hash, sha256Hex(`v${total - 1}-${'y'.repeat(24)}`));
+
+		const usage = await workspace.store.usage();
+		assert.equal(usage.overBudgetBytes, 0, 'no budget means never over budget');
+		assert.equal(usage.prunedRevisions, 0);
+
+		// The manual budget command is a no-op while no budget is configured.
+		const explicit = await workspace.store.enforceBudget();
+		assert.deepEqual(explicit, { prunedRevisions: 0, freedBytes: 0, filesTouched: 0 });
+
+		const after = await readHistory(workspace, 'keep-all.txt');
+		assert.equal(after?.revisions.length, total, 'enforceBudget must not prune when unlimited');
+	});
+
 	it('keeps two windows on the same workspace from losing each other’s revisions', async () => {
 		// Two store instances over one directory model two VS Code windows.
 		const second = await HistoryStore.open({

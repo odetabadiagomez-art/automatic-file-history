@@ -479,6 +479,10 @@ export class HistoryStore {
 	 * baseline survives churn. Returns the number of revisions removed.
 	 */
 	private applyRetention(history: FileHistory): number {
+		// 0 (the default) means unlimited: keep every snapshot, prune nothing.
+		if (!(this.policy.maxRevisionsPerFile > 0)) {
+			return 0;
+		}
 		const max = Math.max(2, Math.floor(this.policy.maxRevisionsPerFile));
 		if (history.revisions.length <= max) {
 			return 0;
@@ -494,6 +498,10 @@ export class HistoryStore {
 	}
 
 	private async enforceBudgetIfOver(): Promise<void> {
+		// 0 (the default) means no budget: never prune to stay under a size limit.
+		if (!(this.policy.workspaceBudgetBytes > 0)) {
+			return;
+		}
 		const usage = await this.usage();
 		if (usage.blobBytes <= this.policy.workspaceBudgetBytes) {
 			return;
@@ -518,9 +526,13 @@ export class HistoryStore {
 	/** Caller must already hold the workspace lock. */
 	private async enforceBudgetUnlocked(): Promise<BudgetResult> {
 		{
+			const budget = this.policy.workspaceBudgetBytes;
+			// 0 (the default) means no budget; the manual command is then a no-op.
+			if (!(budget > 0)) {
+				return { prunedRevisions: 0, freedBytes: 0, filesTouched: 0 };
+			}
 			const histories = await this.readAllHistories();
 			const blobBytes = await this.measureBlobBytes();
-			const budget = this.policy.workspaceBudgetBytes;
 			if (blobBytes <= budget) {
 				return { prunedRevisions: 0, freedBytes: 0, filesTouched: 0 };
 			}
@@ -759,7 +771,10 @@ export class HistoryStore {
 			blobCount: blobs.count,
 			blobBytes: blobs.bytes,
 			manifestBytes: manifests.bytes,
-			overBudgetBytes: Math.max(0, blobs.bytes - this.policy.workspaceBudgetBytes)
+			overBudgetBytes:
+				this.policy.workspaceBudgetBytes > 0
+					? Math.max(0, blobs.bytes - this.policy.workspaceBudgetBytes)
+					: 0
 		};
 		this.usageCache = { at: Date.now(), usage };
 		return usage;

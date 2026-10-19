@@ -3,6 +3,25 @@
 All notable changes to this extension are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## 0.3.0
+
+### Retention
+
+- **Nothing is deleted automatically anymore.** The default is now to keep every snapshot of
+  every file forever, so the full recorded history of each file survives no matter how large
+  the storage folder grows. No version is silently pruned.
+- `automaticFileHistory.maxRevisionsPerFile` now defaults to `0` (was `500`). `0` means
+  unlimited — keep every snapshot. A positive value is an opt-in cap that still always keeps
+  the first captured state and the latest state.
+- `automaticFileHistory.workspaceBudgetMB` now defaults to `0` (was `1024`). `0` means no
+  budget, so snapshots are never pruned to stay under a size limit. A positive value is an
+  opt-in soft budget.
+- The status quick pick reflects the new defaults: it reports that every snapshot is kept when
+  no cap or budget is configured, and **Apply Retention Budget Now** is a no-op unless a
+  workspace budget has been set.
+- Existing behavior is unchanged for anyone who explicitly sets a positive cap or budget; the
+  per-file and workspace pruning logic still honors the first-and-latest guarantee.
+
 ## 0.2.0
 
 ### Storage

@@ -6,6 +6,7 @@ coverage/
 .vscode-test-web/
 chat-history/
 *.vsix
+SHA256SUMS
 .DS_Store
 npm-debug.log*
 *.tsbuildinfo

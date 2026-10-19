@@ -98,9 +98,11 @@ export interface StorageUsage {
 export interface CapturePolicy {
 	/** Files larger than this are never read into memory. */
 	maxFileBytes: number;
-	/** Revisions kept per file before the oldest are pruned. */
+	/** Revisions kept per file before the oldest are pruned. `0` (the default)
+	 * means unlimited: every snapshot is kept and nothing is ever auto-pruned. */
 	maxRevisionsPerFile: number;
-	/** Soft total blob budget for one workspace. */
+	/** Soft total blob budget for one workspace. `0` (the default) means no
+	 * budget: snapshots are never pruned to stay under a size limit. */
 	workspaceBudgetBytes: number;
 	/** Globs that disqualify a file. Checked before includes. */
 	excludeGlobs: string[];
@@ -118,8 +120,9 @@ export interface CapturePolicy {
 
 export const DEFAULT_POLICY: CapturePolicy = {
 	maxFileBytes: 2 * 1024 * 1024,
-	maxRevisionsPerFile: 500,
-	workspaceBudgetBytes: 1024 * 1024 * 1024,
+	// 0 = unlimited. The default keeps every snapshot; nothing is auto-pruned.
+	maxRevisionsPerFile: 0,
+	workspaceBudgetBytes: 0,
 	excludeGlobs: [],
 	includeGlobs: [],
 	stabilizationDelayMs: 120,

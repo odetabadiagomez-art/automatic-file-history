@@ -1,7 +1,7 @@
 {
   "name": "automatic-file-history",
   "displayName": "Automatic File History",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "odetabadiagomez-art",
   "description": "Automatic local snapshots of text files changed by editors, agents, CLI tools, or any external process. No Git, no account, no cloud.",
   "license": "MIT",
@@ -387,17 +387,17 @@
         },
         "automaticFileHistory.maxRevisionsPerFile": {
           "type": "number",
-          "default": 500,
-          "minimum": 2,
+          "default": 0,
+          "minimum": 0,
           "maximum": 100000,
-          "description": "Snapshots kept per file. The first captured state and the latest state are always kept."
+          "description": "Snapshots kept per file. 0 (the default) keeps every snapshot forever and never auto-prunes. Set a positive number to cap history: the first captured state and the latest state are always kept, and only the oldest snapshots in between are pruned."
         },
         "automaticFileHistory.workspaceBudgetMB": {
           "type": "number",
-          "default": 1024,
-          "minimum": 16,
+          "default": 0,
+          "minimum": 0,
           "maximum": 102400,
-          "description": "Soft storage budget for this workspace. When exceeded, the oldest snapshots are pruned."
+          "description": "Soft storage budget for this workspace, in MB. 0 (the default) means no budget, so snapshots are never pruned to stay under a size limit. Set a positive number to enable size-based pruning of the oldest snapshots across files."
         },
         "automaticFileHistory.exclude": {
           "type": "array",

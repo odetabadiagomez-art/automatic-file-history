@@ -11,12 +11,12 @@ Copilot prompt into VS Code and let it do the install for you.
 
 **Just want Copilot to install it?** Jump straight to your language's prompt using the links
 above. In Copilot Chat, select **Agent** mode and copy the entire text block, not just the
-download link. The prompt also works for updating an older installation to **v0.2.0**.
+download link. The prompt also works for updating an older installation to **v0.3.0**.
 Only approve commands you understand; the extension itself does not require a GitHub login.
 
 **只想让 Copilot 帮你安装？** 点击上方“中文安装提示词”，在 Copilot Chat 中选择
 **Agent（智能体）** 模式，并复制完整提示词，而不是只复制下载链接。该提示词也能将旧版更新至
-**v0.2.0**。请仅批准你理解的命令；扩展本身不需要登录 GitHub。
+**v0.3.0**。请仅批准你理解的命令；扩展本身不需要登录 GitHub。
 
 ---
 
@@ -43,7 +43,9 @@ With it you can:
 Everything stays on your own machine: **no account, no cloud, no telemetry, no Git
 repository required**. Snapshots live in a hidden `.file-history` folder inside your project
 (ignored by Git automatically), so the timeline travels with the folder if you zip and share
-it. Secrets-like files (`.env`, `*.pem`, `*.key`, …) are deliberately *not* captured. Monitoring
+it. **Your history is never deleted automatically** — every saved version is kept, even as the
+`.file-history` folder grows, so no earlier version is silently lost. Secrets-like files
+(`.env`, `*.pem`, `*.key`, …) are deliberately *not* captured. Monitoring
 starts automatically once you **trust** a local workspace — watch the status bar for
 `History On`.
 
@@ -63,14 +65,14 @@ Please install the "Automatic File History" VS Code extension on this computer b
 these steps exactly:
 
 1. Download the extension package (VSIX) from:
-   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.2.0/automatic-file-history-0.2.0.vsix
+   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.3.0/automatic-file-history-0.3.0.vsix
    Save it to a temporary location (for example the system temp folder). Use
    `curl -fL -o <destination> <url>` (available on macOS, Linux, and Windows 10+); if curl is
    not available, use PowerShell:
    `Invoke-WebRequest -Uri <url> -OutFile <destination>`.
 2. Download the checksum file from the same release:
-   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.2.0/SHA256SUMS
-   Verify that the VSIX SHA-256 checksum matches the automatic-file-history-0.2.0.vsix entry.
+   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.3.0/SHA256SUMS
+   Verify that the VSIX SHA-256 checksum matches the automatic-file-history-0.3.0.vsix entry.
    Compute it with `shasum -a 256 <file>` (macOS/Linux) or `Get-FileHash <file> -Algorithm SHA256`
    (Windows PowerShell). If verification fails, stop and tell me — do not install.
 3. Install it by running:
@@ -79,7 +81,7 @@ these steps exactly:
    - macOS: try "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
    - Windows: try "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd"
 4. Verify the installation by running `code --list-extensions --show-versions` and confirming
-   that "odetabadiagomez-art.automatic-file-history@0.2.0" appears in the output.
+   that "odetabadiagomez-art.automatic-file-history@0.3.0" appears in the output.
 5. Delete the downloaded VSIX and checksum files.
 6. Tell me the result, and remind me to:
    - reload the VS Code window (Ctrl/Cmd + Shift + P → "Developer: Reload Window");
@@ -120,8 +122,9 @@ from the same URL with a browser, then in VS Code open the Extensions sidebar �
 
 所有数据都保存在你自己的电脑上：**无需账号、不上云、无遥测、也不需要 Git 仓库**。快照存放在
 项目中的隐藏 `.file-history` 文件夹内（默认被 Git 忽略），因此压缩并分享整个项目时，历史记录也能
-随之携带。请确保压缩工具包含该隐藏文件夹；接收者也需要安装本扩展。历史记录可能含有当前文件中
-已删除的旧内容，分享前请检查。类似密钥的文件（`.env`、`*.pem`、`*.key` 等）
+随之携带。**历史记录默认永不自动删除**：每个已保存的版本都会保留，即使 `.file-history` 文件夹
+不断增大，也不会悄悄丢失任何旧版本。请确保压缩工具包含该隐藏文件夹；接收者也需要安装本扩展。
+历史记录可能含有当前文件中已删除的旧内容，分享前请检查。类似密钥的文件（`.env`、`*.pem`、`*.key` 等）
 会被刻意**排除**在记录之外。当你**信任**一个本地工作区后，监控会自动启动——请留意状态栏显示
 `History On`。
 
@@ -139,13 +142,13 @@ from the same URL with a browser, then in VS Code open the Extensions sidebar �
 请在这台电脑上按以下步骤安装 "Automatic File History" VS Code 扩展：
 
 1. 从以下地址下载扩展安装包（VSIX）：
-   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.2.0/automatic-file-history-0.2.0.vsix
+   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.3.0/automatic-file-history-0.3.0.vsix
    保存到临时位置（例如系统临时文件夹）。使用 `curl -fL -o <目标路径> <url>` 下载
    （macOS、Linux 和 Windows 10+ 均自带 curl）；如果没有 curl，改用 PowerShell：
    `Invoke-WebRequest -Uri <url> -OutFile <目标路径>`。
 2. 从同一版本下载校验文件：
-   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.2.0/SHA256SUMS
-   确认 VSIX 的 SHA-256 校验和与其中 automatic-file-history-0.2.0.vsix 对应的值完全一致。
+   https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.3.0/SHA256SUMS
+   确认 VSIX 的 SHA-256 校验和与其中 automatic-file-history-0.3.0.vsix 对应的值完全一致。
    macOS/Linux 用 `shasum -a 256 <文件>` 计算，Windows PowerShell 用
    `Get-FileHash <文件> -Algorithm SHA256` 计算。如果校验失败，请停止并告诉我，
    不要安装。
@@ -155,7 +158,7 @@ from the same URL with a browser, then in VS Code open the Extensions sidebar �
    - macOS：尝试 "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
    - Windows：尝试 "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd"
 4. 运行 `code --list-extensions --show-versions`，确认输出中包含
-   "odetabadiagomez-art.automatic-file-history@0.2.0"，以验证安装成功。
+   "odetabadiagomez-art.automatic-file-history@0.3.0"，以验证安装成功。
 5. 删除已下载的 VSIX 和校验文件。
 6. 告诉我结果，并提醒我：
    - 重新加载 VS Code 窗口（Ctrl/Cmd + Shift + P → "Developer: Reload Window"）；
