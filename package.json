@@ -1,7 +1,7 @@
 {
   "name": "automatic-file-history",
   "displayName": "Automatic File History",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "odetabadiagomez-art",
   "description": "Automatic local snapshots of text files changed by editors, agents, CLI tools, or any external process. No Git, no account, no cloud.",
   "license": "MIT",
@@ -371,7 +371,7 @@
             "Store snapshots in a .file-history folder inside the first workspace folder. The timeline travels with the project when it is moved, zipped, or shared.",
             "Store snapshots in VS Code global storage, outside the project. History stays on this machine and is tied to the folder's location."
           ],
-          "description": "Where file history snapshots are stored. Changing this starts a fresh history in the new location; the old store is left untouched."
+          "description": "Where file history snapshots are stored. Reload the window after changing this. Stores are separate; existing history in the selected location is reused and the other store is left untouched."
         },
         "automaticFileHistory.followActiveEditor": {
           "type": "boolean",

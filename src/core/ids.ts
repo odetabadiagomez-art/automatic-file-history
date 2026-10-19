@@ -56,8 +56,7 @@ export function computeFileId(workspaceId: string, absPath: string): string {
  * as long as its position relative to the store's folder does not change.
  */
 export function computeRelativeFileId(workspaceId: string, baseDir: string, absPath: string): string {
-	const base = canonicalPathForIdentity(baseDir);
-	const relative = toPosixPath(path.relative(base, canonicalPathForIdentity(absPath)));
+	const relative = toPosixPath(path.relative(path.resolve(baseDir), path.resolve(absPath)));
 	return shortHash(`file:\u0001${workspaceId}\u0002${relative}`);
 }
 

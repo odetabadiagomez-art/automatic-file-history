@@ -136,8 +136,14 @@ Set `automaticFileHistory.storageLocation` to `"extension"` for the previous beh
 `<globalStorage>` is VS Code's per-extension global storage directory (on macOS:
 `~/Library/Application Support/Code/User/globalStorage`). Nothing is written into your
 project tree, but history then stays on that machine and is tied to the folder's location —
-it does not survive a move or a zip-and-share. Switching locations starts a fresh history in
-the new place; the old store is left untouched.
+it does not survive a move or a zip-and-share. Reload the window after switching locations.
+The two stores are separate: existing history in the selected location is reused, or a new
+history starts there; the old store is left untouched. History from v0.1.0 is not migrated
+automatically; select `"extension"` to access it again.
+
+When sharing, make sure your ZIP tool includes the hidden `.file-history` folder. The recipient
+needs this extension installed and must trust the extracted workspace to browse its history.
+Review history before sharing: it can contain older content you have since removed.
 
 In a multi-root workspace the store lives in the first folder. Files in the other roots are
 still tracked, but their history only travels along if all roots keep their relative

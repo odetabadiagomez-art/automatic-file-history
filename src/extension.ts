@@ -110,7 +110,13 @@ async function bootstrap(context: vscode.ExtensionContext, output: vscode.Output
 		if (storeInWorkspace) {
 			// Keep version control away from the snapshots without asking the
 			// user to edit their ignore files.
-			await fs.writeFile(path.join(storageRoot, '.gitignore'), '*\n', 'utf8').catch(() => undefined);
+			try {
+				await fs.writeFile(path.join(storageRoot, '.gitignore'), '*\n', { encoding: 'utf8', flag: 'wx' });
+			} catch (err) {
+				if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
+					throw err;
+				}
+			}
 		}
 		store = await HistoryStore.open({
 			rootDir: storageRoot,
@@ -225,9 +231,14 @@ function registerConfigurationWatchers(context: vscode.ExtensionContext, output:
 			if (!event.affectsConfiguration('automaticFileHistory')) {
 				return;
 			}
-			// The storage root itself moved: rebuild the whole session.
 			if (event.affectsConfiguration('automaticFileHistory.storageLocation')) {
-				await bootstrap(context, output);
+				const action = await vscode.window.showInformationMessage(
+					'Reload the window to change Automatic File History storage. Existing history stays in its current location.',
+					'Reload Window'
+				);
+				if (action === 'Reload Window') {
+					await vscode.commands.executeCommand('workbench.action.reloadWindow');
+				}
 				return;
 			}
 			const next = readSettings();
@@ -238,6 +249,7 @@ function registerConfigurationWatchers(context: vscode.ExtensionContext, output:
 			if (!session) {
 				return;
 			}
+			next.storageLocation = session.settings.storageLocation;
 			session.settings = next;
 			session.store.setPolicy(next.policy);
 			session.monitor.applyPolicy(next.policy);

@@ -3,7 +3,7 @@
 All notable changes to this extension are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.2.0
 
 ### Storage
 
@@ -14,9 +14,13 @@ All notable changes to this extension are documented here. This project follows
   machine reattaches every file's history.
 - New setting `automaticFileHistory.storageLocation` (`"workspace"` default, `"extension"` for
   the previous global-storage behavior). Changing it starts a fresh history in the new
-  location; the old store is left untouched.
+  location after reloading the window; the old store is left untouched. Previously captured
+  history in the selected location is reused.
 - `**/.file-history/**` is excluded from capture by default, so a shared project arriving on a
   machine configured for global storage is never snapshot into itself.
+- Portable manifests resolve file paths against the current project location, including
+  deleted-file history, so views, restore, and startup reconciliation use the unzipped project
+  rather than its original absolute paths.
 
 ## 0.1.0
 

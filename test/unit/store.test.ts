@@ -564,6 +564,15 @@ describe('workspace-local store (portable identity)', () => {
 			event: 'baseline',
 			origin: 'unknown'
 		});
+		const deletedPath = path.join(project, 'deleted.md');
+		await store.appendContent({
+			absPath: deletedPath,
+			relPath: 'deleted.md',
+			content: Buffer.from('recover me'),
+			event: 'baseline',
+			origin: 'unknown'
+		});
+		await store.markDeleted({ absPath: deletedPath, relPath: 'deleted.md' });
 
 		// Simulate zip → share → unzip somewhere else: copy the whole tree and
 		// reopen the store from the new location.
@@ -580,9 +589,24 @@ describe('workspace-local store (portable identity)', () => {
 
 		const history = await reopened.getHistoryByPath(path.join(movedProject, 'notes.md'));
 		assert.ok(history, 'the manifest must be found through the relative identity');
+		assert.equal(history.path, path.join(movedProject, 'notes.md'));
 		assert.equal(history.revisions.length, 1);
 		const content = await reopened.readBlob(history.revisions[0].hash);
 		assert.equal(content.toString('utf8'), 'version one');
+		const summaries = await reopened.listSummaries();
+		assert.equal(summaries.find(summary => summary.relPath === 'notes.md')?.path, path.join(movedProject, 'notes.md'));
+		const deleted = summaries.find(summary => summary.relPath === 'deleted.md');
+		assert.equal(deleted?.path, path.join(movedProject, 'deleted.md'));
+		assert.equal(deleted?.deleted, true);
+		const unchanged = await reopened.appendContent({
+			absPath: path.join(movedProject, 'notes.md'),
+			relPath: 'notes.md',
+			content: Buffer.from('version one'),
+			event: 'baseline',
+			origin: 'unknown'
+		});
+		assert.equal(unchanged.kind, 'unchanged');
+		assert.equal((await reopened.getHistoryByPath(path.join(movedProject, 'notes.md')))?.revisions.length, 1);
 
 		await removeDir(project);
 		await removeDir(moved);

@@ -50,6 +50,8 @@ export interface FileHistory {
 	workspaceId: string;
 	/** Last known absolute path on disk. */
 	path: string;
+	/** Path relative to the portable store's identity base, independent of its current location. */
+	portablePath?: string;
 	/** Last known path relative to its workspace folder. */
 	relPath: string;
 	rootName?: string;

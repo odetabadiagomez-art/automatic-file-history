@@ -6,7 +6,8 @@ import {
 	canonicalPathForIdentity,
 	computeFileId,
 	computeRelativeFileId,
-	sha256Hex
+	sha256Hex,
+	toPosixPath
 } from './ids';
 import { WorkspaceLock } from './lock';
 import {
@@ -238,6 +239,9 @@ export class HistoryStore {
 				this.log(`Ignoring unreadable history record for ${fileId}.`);
 				return null;
 			}
+			if (this.identityBaseDir) {
+				parsed.path = path.resolve(this.identityBaseDir, parsed.portablePath ?? parsed.relPath);
+			}
 			return parsed;
 		} catch (err) {
 			const code = (err as NodeJS.ErrnoException).code;
@@ -249,6 +253,9 @@ export class HistoryStore {
 	}
 
 	private async writeManifest(history: FileHistory): Promise<void> {
+		if (this.identityBaseDir) {
+			history.portablePath = toPosixPath(path.relative(this.identityBaseDir, history.path));
+		}
 		const target = this.manifestPath(history.fileId);
 		const tmp = `${target}.tmp-${process.pid}-${randomBytes(6).toString('hex')}`;
 		let handle: fs.FileHandle | undefined;

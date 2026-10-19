@@ -16,3 +16,5 @@ automatic-file-history-extension-plan.md
 **/.DS_Store
 .gitignore
 *.vsix
+**/.file-history/**
+icon.png
