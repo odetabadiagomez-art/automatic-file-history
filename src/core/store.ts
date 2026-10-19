@@ -5,6 +5,7 @@ import {
 	blobRelativePath,
 	canonicalPathForIdentity,
 	computeFileId,
+	computeRelativeFileId,
 	sha256Hex
 } from './ids';
 import { WorkspaceLock } from './lock';
@@ -25,9 +26,15 @@ const FILE_MODE = 0o600;
 const BLOB_MODE = 0o400;
 
 export interface StoreOptions {
-	/** Extension-managed directory for this workspace. Never inside the project. */
+	/** Extension-managed directory for this workspace: global storage, or an in-project folder. */
 	rootDir: string;
 	workspaceId: string;
+	/**
+	 * When set, file identity is derived from paths relative to this directory
+	 * instead of absolute paths, so history stays attached when the project tree
+	 * (including an in-project store) is moved, zipped, or shared.
+	 */
+	identityBaseDir?: string;
 	policy: CapturePolicy;
 	now?: () => Date;
 	/** Called with human-readable messages; never receives file content. */
@@ -87,6 +94,7 @@ async function fsyncDir(dir: string): Promise<void> {
 export class HistoryStore {
 	readonly rootDir: string;
 	readonly workspaceId: string;
+	private readonly identityBaseDir: string | undefined;
 	private readonly filesDir: string;
 	private readonly blobsDir: string;
 	private readonly lock: WorkspaceLock;
@@ -100,6 +108,7 @@ export class HistoryStore {
 	private constructor(options: StoreOptions) {
 		this.rootDir = options.rootDir;
 		this.workspaceId = options.workspaceId;
+		this.identityBaseDir = options.identityBaseDir;
 		this.filesDir = path.join(options.rootDir, 'files');
 		this.blobsDir = path.join(options.rootDir, 'blobs');
 		this.policy = options.policy;
@@ -133,6 +142,9 @@ export class HistoryStore {
 	}
 
 	fileIdFor(absPath: string): string {
+		if (this.identityBaseDir) {
+			return computeRelativeFileId(this.workspaceId, this.identityBaseDir, absPath);
+		}
 		return computeFileId(this.workspaceId, absPath);
 	}
 

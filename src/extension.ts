@@ -80,21 +80,42 @@ async function bootstrap(context: vscode.ExtensionContext, output: vscode.Output
 	// Tear down any previous session (settings or folders changed).
 	session?.monitor.dispose();
 
-	const workspaceId = computeWorkspaceId(
-		(vscode.workspace.workspaceFolders ?? []).map(folder => ({
-			uri: folder.uri.toString(),
-			name: folder.name
-		})),
-		vscode.workspace.name ?? context.extensionPath
-	);
-	const storageRoot = path.join(context.globalStorageUri.fsPath, 'workspaces', workspaceId);
+	const folders = vscode.workspace.workspaceFolders ?? [];
+	const storeInWorkspace = settings.storageLocation === 'workspace' && folders.length > 0 && folders[0].uri.scheme === 'file';
+
+	let workspaceId: string;
+	let storageRoot: string;
+	let identityBaseDir: string | undefined;
+	if (storeInWorkspace) {
+		// History travels with the project: the store lives inside the first
+		// workspace folder and file identity is derived from paths relative to
+		// that folder, so a zipped-and-shared tree keeps its timelines.
+		identityBaseDir = folders[0].uri.fsPath;
+		workspaceId = 'workspace-local';
+		storageRoot = path.join(identityBaseDir, '.file-history');
+	} else {
+		workspaceId = computeWorkspaceId(
+			folders.map(folder => ({
+				uri: folder.uri.toString(),
+				name: folder.name
+			})),
+			vscode.workspace.name ?? context.extensionPath
+		);
+		storageRoot = path.join(context.globalStorageUri.fsPath, 'workspaces', workspaceId);
+	}
 
 	let store: HistoryStore;
 	try {
 		await fs.mkdir(storageRoot, { recursive: true, mode: 0o700 });
+		if (storeInWorkspace) {
+			// Keep version control away from the snapshots without asking the
+			// user to edit their ignore files.
+			await fs.writeFile(path.join(storageRoot, '.gitignore'), '*\n', 'utf8').catch(() => undefined);
+		}
 		store = await HistoryStore.open({
 			rootDir: storageRoot,
 			workspaceId,
+			identityBaseDir,
 			policy: settings.policy,
 			log: message => log(output, message)
 		});
@@ -202,6 +223,11 @@ function registerConfigurationWatchers(context: vscode.ExtensionContext, output:
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration(async event => {
 			if (!event.affectsConfiguration('automaticFileHistory')) {
+				return;
+			}
+			// The storage root itself moved: rebuild the whole session.
+			if (event.affectsConfiguration('automaticFileHistory.storageLocation')) {
+				await bootstrap(context, output);
 				return;
 			}
 			const next = readSettings();

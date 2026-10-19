@@ -44,15 +44,21 @@ describe('Automatic File History (extension host)', function suite() {
 		assert.equal(ready, true, 'the startup baseline scan should complete');
 	});
 
-	it('stores history outside the workspace tree', async () => {
+	it('stores history inside the workspace so it travels with the project', async () => {
 		const storageRoot = api.storageRoot();
 		assert.ok(storageRoot, 'a storage root should exist once monitoring is active');
-		assert.ok(
-			!storageRoot!.startsWith(workspaceRoot),
-			`history storage must not live in the project tree: ${storageRoot}`
+		assert.equal(
+			storageRoot,
+			path.join(workspaceRoot, '.file-history'),
+			'the default storage location is a .file-history folder inside the workspace'
 		);
 		const stat = await fs.stat(storageRoot!);
 		assert.equal(stat.isDirectory(), true);
+	});
+
+	it('never captures its own in-workspace history folder', async () => {
+		const history = await api.historyFor(path.join(workspaceRoot, '.file-history', 'files', 'whatever.json'));
+		assert.equal(history, null, 'the extension store must not snapshot itself');
 	});
 
 	it('reports monitoring rather than claiming protection before the baseline exists', () => {

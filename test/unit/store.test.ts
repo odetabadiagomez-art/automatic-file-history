@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { blobRelativePath, sha256Hex } from '../../src/core/ids';
+import { blobRelativePath, computeRelativeFileId, sha256Hex } from '../../src/core/ids';
 import { HistoryStore } from '../../src/core/store';
 import {
 	captureFile,
@@ -528,5 +528,63 @@ describe('WorkspaceLock', () => {
 
 		const history = await first.getHistoryByPath(abs);
 		assert.equal(history?.revisions.length, 2);
+	});
+});
+
+describe('workspace-local store (portable identity)', () => {
+	after(async () => {
+		await cleanupTempDirs();
+	});
+
+	it('keeps the same file id when the whole tree moves elsewhere', () => {
+		const before = computeRelativeFileId('workspace-local', '/home/alice/project', '/home/alice/project/src/app.ts');
+		const after = computeRelativeFileId('workspace-local', '/tmp/unzipped/project', '/tmp/unzipped/project/src/app.ts');
+		assert.equal(before, after);
+
+		const other = computeRelativeFileId('workspace-local', '/tmp/unzipped/project', '/tmp/unzipped/project/src/other.ts');
+		assert.notEqual(before, other);
+	});
+
+	it('history follows a project that is copied to a new location', async () => {
+		const policy = testPolicy();
+		const project = await tempDir('afh-project-');
+		const storageRoot = path.join(project, '.file-history');
+
+		const store = await HistoryStore.open({
+			rootDir: storageRoot,
+			workspaceId: 'workspace-local',
+			identityBaseDir: project,
+			policy
+		});
+		const absPath = await writeProjectFile(project, 'notes.md', 'version one');
+		await store.appendContent({
+			absPath,
+			relPath: 'notes.md',
+			content: Buffer.from('version one'),
+			event: 'baseline',
+			origin: 'unknown'
+		});
+
+		// Simulate zip → share → unzip somewhere else: copy the whole tree and
+		// reopen the store from the new location.
+		const moved = await tempDir('afh-moved-');
+		const movedProject = path.join(moved, 'project');
+		await fs.cp(project, movedProject, { recursive: true });
+
+		const reopened = await HistoryStore.open({
+			rootDir: path.join(movedProject, '.file-history'),
+			workspaceId: 'workspace-local',
+			identityBaseDir: movedProject,
+			policy
+		});
+
+		const history = await reopened.getHistoryByPath(path.join(movedProject, 'notes.md'));
+		assert.ok(history, 'the manifest must be found through the relative identity');
+		assert.equal(history.revisions.length, 1);
+		const content = await reopened.readBlob(history.revisions[0].hash);
+		assert.equal(content.toString('utf8'), 'version one');
+
+		await removeDir(project);
+		await removeDir(moved);
 	});
 });

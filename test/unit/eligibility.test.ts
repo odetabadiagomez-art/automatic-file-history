@@ -45,6 +45,8 @@ describe('eligibility', () => {
 			'node_modules/pkg/index.js',
 			'a/b/node_modules/x.js',
 			'.git/config',
+			'.file-history/files/abc.json',
+			'.file-history/blobs/ab/def',
 			'dist/bundle.js',
 			'build/output.o',
 			'out/compiled.js',

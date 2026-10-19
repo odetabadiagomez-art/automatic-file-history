@@ -14,6 +14,9 @@ export const DEFAULT_EXCLUDES: string[] = [
 	'**/.git/**',
 	'**/.svn/**',
 	'**/.hg/**',
+	// This extension's own workspace-local store (also guarded by the storageRoot
+	// check, but a shared folder may arrive on a machine using global storage)
+	'**/.file-history/**',
 	// Dependencies
 	'**/node_modules/**',
 	'**/bower_components/**',

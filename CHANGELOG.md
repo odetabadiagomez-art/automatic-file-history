@@ -3,6 +3,21 @@
 All notable changes to this extension are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Storage
+
+- History is now stored **inside the project** by default, in a `.file-history` folder in the
+  first workspace folder, with a `.gitignore` inside it so snapshots never reach version
+  control. File identity is derived from workspace-relative paths, so the full timeline travels
+  with the folder when it is zipped, moved, renamed, or shared — reopening the folder on any
+  machine reattaches every file's history.
+- New setting `automaticFileHistory.storageLocation` (`"workspace"` default, `"extension"` for
+  the previous global-storage behavior). Changing it starts a fresh history in the new
+  location; the old store is left untouched.
+- `**/.file-history/**` is excluded from capture by default, so a shared project arriving on a
+  machine configured for global storage is never snapshot into itself.
+
 ## 0.1.0
 
 Initial release.

@@ -360,6 +360,19 @@
           "default": true,
           "description": "Capture local snapshots of eligible text files in trusted workspaces."
         },
+        "automaticFileHistory.storageLocation": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "extension"
+          ],
+          "default": "workspace",
+          "enumDescriptions": [
+            "Store snapshots in a .file-history folder inside the first workspace folder. The timeline travels with the project when it is moved, zipped, or shared.",
+            "Store snapshots in VS Code global storage, outside the project. History stays on this machine and is tied to the folder's location."
+          ],
+          "description": "Where file history snapshots are stored. Changing this starts a fresh history in the new location; the old store is left untouched."
+        },
         "automaticFileHistory.followActiveEditor": {
           "type": "boolean",
           "default": true,

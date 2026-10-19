@@ -49,6 +49,18 @@ export function computeFileId(workspaceId: string, absPath: string): string {
 	return shortHash(`file:\u0001${workspaceId}\u0002${canonicalPathForIdentity(absPath)}`);
 }
 
+/**
+ * Per-file identifier derived from the path relative to `baseDir` instead of
+ * the absolute path. Used when history is stored inside the project: the whole
+ * tree can be zipped, moved, or shared, and every file keeps the same identity
+ * as long as its position relative to the store's folder does not change.
+ */
+export function computeRelativeFileId(workspaceId: string, baseDir: string, absPath: string): string {
+	const base = canonicalPathForIdentity(baseDir);
+	const relative = toPosixPath(path.relative(base, canonicalPathForIdentity(absPath)));
+	return shortHash(`file:\u0001${workspaceId}\u0002${relative}`);
+}
+
 /** Blob layout: `blobs/<first two hex chars>/<full hash>`. */
 export function blobRelativePath(hash: string): string {
 	return `blobs/${hash.slice(0, 2)}/${hash}`;

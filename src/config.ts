@@ -3,6 +3,8 @@ import { DEFAULT_POLICY, type CapturePolicy } from './core/types';
 
 export interface ExtensionSettings {
 	enabled: boolean;
+	/** Where the store lives: inside the first workspace folder, or in global storage. */
+	storageLocation: 'workspace' | 'extension';
 	followActiveEditor: boolean;
 	captureOnSave: boolean;
 	showStatusBar: boolean;
@@ -50,6 +52,7 @@ export function readSettings(): ExtensionSettings {
 
 	return {
 		enabled: config.get<boolean>('enabled', true),
+		storageLocation: config.get<string>('storageLocation', 'workspace') === 'extension' ? 'extension' : 'workspace',
 		followActiveEditor: config.get<boolean>('followActiveEditor', true),
 		captureOnSave: config.get<boolean>('captureOnSave', true),
 		showStatusBar: config.get<boolean>('showStatusBar', true),

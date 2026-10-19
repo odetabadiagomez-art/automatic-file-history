@@ -44,6 +44,10 @@ quick pick, and the per-file empty states all say what is and is not covered.
 
 ## Install
 
+> **Students:** follow [STUDENT-INSTALL.md](STUDENT-INSTALL.md) (English / 中文) to have Copilot
+> install the extension for you automatically from the
+> [latest release](https://github.com/odetabadiagomez-art/automatic-file-history/releases).
+
 From a VSIX:
 
 1. `npm install && npm run package` (or download a release VSIX).
@@ -99,18 +103,47 @@ Phases: `Initializing` (first snapshots still being built — not full protectio
 
 ## Where history is stored
 
+By default history lives **inside your project**, in a hidden `.file-history` folder in the
+first workspace folder:
+
 ```
-<globalStorage>/odetabadiagomez-art.automatic-file-history/workspaces/<workspaceId>/
+<your-project>/.file-history/
   blobs/<xx>/<sha256>     immutable, content-addressed, deduplicated, mode 0400
   files/<fileId>.json     per-file revision metadata, atomically replaced
   lock                    cross-window advisory lock
+  .gitignore              contains "*", so snapshots never reach version control
+```
+
+Because file identity is derived from paths **relative to the project**, the whole timeline
+travels with the folder: zip the project and share it, move it to another machine, or rename
+its parent directory, and every file keeps its history when the folder is opened again.
+
+The store is never captured by the extension itself, and it is excluded from capture by
+default even on machines where it arrives inside a shared folder. To keep it out of the
+Explorer and the file watcher, you can optionally add this to your settings:
+
+```json
+"files.exclude": { "**/.file-history": true },
+"files.watcherExclude": { "**/.file-history/**": true }
+```
+
+Set `automaticFileHistory.storageLocation` to `"extension"` for the previous behavior:
+
+```
+<globalStorage>/odetabadiagomez-art.automatic-file-history/workspaces/<workspaceId>/
 ```
 
 `<globalStorage>` is VS Code's per-extension global storage directory (on macOS:
-`~/Library/Application Support/Code/User/globalStorage`). Nothing is ever written into your
-project tree, so there is no `.gitignore` churn and no risk of committing snapshots.
+`~/Library/Application Support/Code/User/globalStorage`). Nothing is written into your
+project tree, but history then stays on that machine and is tied to the folder's location —
+it does not survive a move or a zip-and-share. Switching locations starts a fresh history in
+the new place; the old store is left untouched.
 
-The workspace folder itself is reachable from the status quick pick via **Open Storage Folder**.
+In a multi-root workspace the store lives in the first folder. Files in the other roots are
+still tracked, but their history only travels along if all roots keep their relative
+positions.
+
+The storage folder is reachable from the status quick pick via **Open Storage Folder**.
 
 **Local storage is not encryption and not a backup.** Snapshots sit on the same disk as your
 files, readable by your user account. Use **Export Snapshot…** for anything you need to keep
@@ -121,6 +154,7 @@ elsewhere.
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `automaticFileHistory.enabled` | `true` | Master switch. |
+| `automaticFileHistory.storageLocation` | `"workspace"` | `"workspace"` stores history in `.file-history` inside the project so it travels with the folder; `"extension"` keeps it in VS Code global storage on this machine. |
 | `automaticFileHistory.maxFileSizeMB` | `2` | Larger files are not tracked. |
 | `automaticFileHistory.maxRevisionsPerFile` | `500` | Oldest snapshots pruned past this; the first and latest are always kept. |
 | `automaticFileHistory.workspaceBudgetMB` | `1024` | Soft workspace budget; oldest snapshots pruned across files when exceeded. |
@@ -135,7 +169,8 @@ elsewhere.
 ### What is not captured
 
 - **Dependency, build and cache trees**: `node_modules`, `.git`, `dist`, `build`, `out`,
-  `target`, `coverage`, `__pycache__`, `.venv`, `.next`, lockfiles, minified bundles, source maps.
+  `target`, `coverage`, `__pycache__`, `.venv`, `.next`, `.file-history` (this extension's own
+  store), lockfiles, minified bundles, source maps.
 - **Likely secrets, excluded on purpose**: `.env` and `.env.*`, `*.pem`, `*.key`, `*.p12`,
   `*.pfx`, keystores, `id_rsa`/`id_ed25519`, `secrets.*`, `credentials*`, `*secret*`.
   Capturing these would copy credentials into a second location on disk. Use
