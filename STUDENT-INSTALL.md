@@ -5,6 +5,19 @@ Copilot prompt into VS Code and let it do the install for you.
 
 本页面向学生。选择你的语言，阅读简短说明，然后把 Copilot 提示词粘贴到 VS Code 中，让它自动完成安装。
 
+[English install prompt](#how-to-install-it-automatically-with-copilot) |
+[中文安装提示词](#如何用-copilot-自动安装) |
+[README / 项目说明](README.md)
+
+**Just want Copilot to install it?** Jump straight to your language's prompt using the links
+above. In Copilot Chat, select **Agent** mode and copy the entire text block, not just the
+download link. The prompt also works for updating an older installation to **v0.2.0**.
+Only approve commands you understand; the extension itself does not require a GitHub login.
+
+**只想让 Copilot 帮你安装？** 点击上方“中文安装提示词”，在 Copilot Chat 中选择
+**Agent（智能体）** 模式，并复制完整提示词，而不是只复制下载链接。该提示词也能将旧版更新至
+**v0.2.0**。请仅批准你理解的命令；扩展本身不需要登录 GitHub。
+
 ---
 
 ## English
@@ -43,6 +56,8 @@ previous version is always one click away.
 2. Switch Copilot Chat to **Agent** mode (the mode selector at the bottom of the chat input).
 3. Paste the prompt below and press Enter. Approve the terminal commands when VS Code asks.
 
+**Copy this entire prompt into Copilot Chat:**
+
 ```text
 Please install the "Automatic File History" VS Code extension on this computer by following
 these steps exactly:
@@ -50,7 +65,7 @@ these steps exactly:
 1. Download the extension package (VSIX) from:
    https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.2.0/automatic-file-history-0.2.0.vsix
    Save it to a temporary location (for example the system temp folder). Use
-   `curl -L -o <destination> <url>` (available on macOS, Linux, and Windows 10+); if curl is
+   `curl -fL -o <destination> <url>` (available on macOS, Linux, and Windows 10+); if curl is
    not available, use PowerShell:
    `Invoke-WebRequest -Uri <url> -OutFile <destination>`.
 2. Download the checksum file from the same release:
@@ -68,7 +83,7 @@ these steps exactly:
 5. Delete the downloaded VSIX and checksum files.
 6. Tell me the result, and remind me to:
    - reload the VS Code window (Ctrl/Cmd + Shift + P → "Developer: Reload Window");
-   - click "Trust" if VS Code asks whether I trust the workspace (monitoring only runs in
+   - trust the workspace only if I know and trust its contents (monitoring only runs in
      trusted local workspaces);
    - look for "History On" in the status bar at the bottom of VS Code;
    - find the "Automatic File History" and "Recently Changed Files" views in the Explorer
@@ -118,12 +133,14 @@ from the same URL with a browser, then in VS Code open the Extensions sidebar �
 2. 将 Copilot 聊天切换到 **Agent（智能体）** 模式（聊天输入框底部的模式选择器）。
 3. 粘贴下面的提示词并按回车。当 VS Code 询问时，批准执行终端命令。
 
+**将以下完整提示词复制到 Copilot Chat：**
+
 ```text
 请在这台电脑上按以下步骤安装 "Automatic File History" VS Code 扩展：
 
 1. 从以下地址下载扩展安装包（VSIX）：
    https://github.com/odetabadiagomez-art/automatic-file-history/releases/download/v0.2.0/automatic-file-history-0.2.0.vsix
-   保存到临时位置（例如系统临时文件夹）。使用 `curl -L -o <目标路径> <url>` 下载
+   保存到临时位置（例如系统临时文件夹）。使用 `curl -fL -o <目标路径> <url>` 下载
    （macOS、Linux 和 Windows 10+ 均自带 curl）；如果没有 curl，改用 PowerShell：
    `Invoke-WebRequest -Uri <url> -OutFile <目标路径>`。
 2. 从同一版本下载校验文件：
@@ -142,7 +159,7 @@ from the same URL with a browser, then in VS Code open the Extensions sidebar �
 5. 删除已下载的 VSIX 和校验文件。
 6. 告诉我结果，并提醒我：
    - 重新加载 VS Code 窗口（Ctrl/Cmd + Shift + P → "Developer: Reload Window"）；
-   - 如果 VS Code 询问是否信任该工作区，请点击"信任"（监控只在受信任的本地工作区中运行）；
+   - 只有在确认项目内容可信时才信任该工作区（监控只在受信任的本地工作区中运行）；
    - 在 VS Code 底部状态栏查看 "History On"；
    - 在资源管理器侧边栏找到 "Automatic File History" 和 "Recently Changed Files" 视图；
    - 压缩分享项目时包含隐藏的 .file-history 文件夹，分享前检查其中的旧内容；
